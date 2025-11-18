@@ -1,4 +1,4 @@
 package com.backend.dashboarddemo.dto.request;
 
-public record LoginRequestDto() {
+public record LoginRequestDto(String email, String password) {
 }
