@@ -1,6 +1,5 @@
 package com.backend.dashboarddemo.model;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -36,7 +35,7 @@ public class UserRole {
     )
     Set<Dashboard> dashboards = new HashSet<>();
 
-    @PostConstruct
+    @PrePersist
     void init() {
         createdAt = Instant.now();
     }

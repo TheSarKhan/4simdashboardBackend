@@ -1,6 +1,5 @@
 package com.backend.dashboarddemo.model;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,7 +17,7 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
-            @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String fullName;
     @Column(unique = true, nullable = false)
@@ -35,9 +34,13 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     Set<UserRole> roles = new HashSet<>();
 
-    @PostConstruct
+    @PrePersist
     void init() {
         createdAt = Instant.now();
         active = true;
+    }
+
+    public CustomUserDetails customUserDetails() {
+        return new CustomUserDetails(this);
     }
 }
