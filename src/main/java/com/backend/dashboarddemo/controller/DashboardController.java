@@ -45,4 +45,14 @@ public class DashboardController {
         dashboardService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/getByUser")
+    public ResponseEntity<List<DashboardResponseDto>> getDashboardsForUser(@RequestParam Long userId) {
+        return ResponseEntity.ok(dashboardService.getDashboardsForUser(userId));
+    }
+
+    @GetMapping("/getByRole")
+    public ResponseEntity<List<DashboardResponseDto>> getDashboardsByRole(@RequestParam Long roleId) {
+        return ResponseEntity.ok(dashboardService.getDashboardsByRole(roleId));
+    }
 }

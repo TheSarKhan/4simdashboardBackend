@@ -17,4 +17,8 @@ public interface DashboardService {
     DashboardResponseDto update(Long id, UpdatedDashboardRequestDto updatedDashboardRequestDto);
 
     void delete(Long id);
+
+    List<DashboardResponseDto> getDashboardsForUser(Long userId);
+
+    List<DashboardResponseDto> getDashboardsByRole(Long roleId);
 }

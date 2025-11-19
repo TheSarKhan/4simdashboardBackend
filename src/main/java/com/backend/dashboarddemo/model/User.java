@@ -37,7 +37,6 @@ public class User {
     @PrePersist
     void init() {
         createdAt = Instant.now();
-        active = true;
     }
 
     public CustomUserDetails customUserDetails() {
