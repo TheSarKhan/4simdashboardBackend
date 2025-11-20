@@ -16,10 +16,17 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6379
+      port: 6381
+      password: myRedisCode123
 
   app:
     jwt:
       secret: "Xi89a6p5yrZHsyNaWCU7kIUmzMGsgvQmakUGkUSRW14268tccCGRuJVo8EZkd8/IqUL5/jtExXNnTHv2b13KMg=="
       access-expiration-ms: 3600000
       refresh-expiration-ms: 1209600000
+
+  admin:
+    fullName: Admin
+    email: admindashboard@gmail.com
+    password : admin123
+    phoneNumber: +9946789768

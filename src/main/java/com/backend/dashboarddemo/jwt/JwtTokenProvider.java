@@ -28,7 +28,11 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + accessExpirationMs);
 
-        String roles = user.getRoles().stream()
+        var rolesCopy = user.getRoles() == null
+                ? java.util.List.<UserRole>of()
+                : new java.util.ArrayList<>(user.getRoles());
+
+        String roles = rolesCopy.stream()
                 .map(UserRole::getName)
                 .collect(Collectors.joining(","));
 
@@ -42,6 +46,7 @@ public class JwtTokenProvider {
                 .signWith(SignatureAlgorithm.HS256, secret.getBytes(StandardCharsets.UTF_8))
                 .compact();
     }
+
 
     public String generateRefreshToken(User user) {
         Date now = new Date();

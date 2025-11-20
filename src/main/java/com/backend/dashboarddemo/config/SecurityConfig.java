@@ -44,10 +44,10 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/login",
-                                "/auth/forgot",
-                                "/auth/verify-code",
-                                "/auth/reset-password"
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/forgot",
+                                "/api/v1/auth/verify-code",
+                                "/api/v1/auth/reset-password"
                         ).permitAll()
 
                         .requestMatchers(

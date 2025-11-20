@@ -1,4 +1,6 @@
 package com.backend.dashboarddemo.dto.request;
 
-public record ForgotPasswordRequestDto(String email) {
+import jakarta.validation.constraints.NotBlank;
+
+public record ForgotPasswordRequestDto(@NotBlank String email) {
 }

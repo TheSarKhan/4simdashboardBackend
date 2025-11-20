@@ -1,5 +1,6 @@
 package com.backend.dashboarddemo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -29,6 +30,7 @@ public class Dashboard {
 
     @ManyToMany(mappedBy = "dashboards", fetch = FetchType.LAZY)
     @Builder.Default
+    @JsonBackReference(value = "role-dashboards")
     Set<UserRole> roles = new HashSet<>();
 
 }

@@ -1,6 +1,8 @@
 package com.backend.dashboarddemo.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+
 import java.util.Set;
 
-public record RoleRequestDto(String name, String description, Set<Long> dashboardIds) {
+public record RoleRequestDto(@NotBlank String name, @NotBlank String description, Set<Long> dashboardIds) {
 }

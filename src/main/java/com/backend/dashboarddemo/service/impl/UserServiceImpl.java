@@ -1,17 +1,23 @@
 package com.backend.dashboarddemo.service.impl;
 
+import com.backend.dashboarddemo.dto.request.UserProfileUpdateRequestDto;
 import com.backend.dashboarddemo.dto.request.UserRequestDto;
-import com.backend.dashboarddemo.dto.request.UserResetPasswordRequestDto;
+import com.backend.dashboarddemo.dto.response.DashboardResponseDto;
 import com.backend.dashboarddemo.dto.response.UserResponseDto;
 import com.backend.dashboarddemo.handler.exception.DataNotFoundException;
 import com.backend.dashboarddemo.handler.exception.UserAlreadyExistException;
+import com.backend.dashboarddemo.jwt.SecurityUtil;
+import com.backend.dashboarddemo.mapper.DashboardMapper;
 import com.backend.dashboarddemo.mapper.UserMapper;
+import com.backend.dashboarddemo.model.Dashboard;
 import com.backend.dashboarddemo.model.User;
 import com.backend.dashboarddemo.model.UserRole;
 import com.backend.dashboarddemo.repository.UserRepository;
 import com.backend.dashboarddemo.repository.UserRoleRepository;
 import com.backend.dashboarddemo.service.EmailService;
+import com.backend.dashboarddemo.service.ProfileService;
 import com.backend.dashboarddemo.service.UserService;
+import com.backend.dashboarddemo.util.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -19,25 +25,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, ProfileService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate;
     private final UserMapper userMapper;
-
-    private static final String PASSWORD_ALPHABET =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    private final SecurityUtil securityUtil;
+    private final DashboardMapper dashboardMapper;
 
     private static final int DEFAULT_PASSWORD_LENGTH = 8;
 
@@ -78,7 +83,7 @@ public class UserServiceImpl implements UserService {
         List<UserRole> userRoles = userRoleRepository.findAllById(userRequestDto.roleIds());
         user.setRoles(Set.copyOf(userRoles));
 
-        String password = generateRandomPassword(DEFAULT_PASSWORD_LENGTH);
+        String password = PasswordGenerator.generateRandomPassword(DEFAULT_PASSWORD_LENGTH);
 
         user.setPassword(passwordEncoder.encode(password));
         user.setActive(true);
@@ -87,24 +92,6 @@ public class UserServiceImpl implements UserService {
         String key = INIT_PWD_PREFIX + saved.getId();
         redisTemplate.opsForValue().set(key, password, INIT_PWD_TTL);
         emailService.sendInitialPassword(saved.getEmail(), password);
-        return userMapper.userToUserResponseDto(saved);
-    }
-
-    @Override
-    @Transactional
-    public UserResponseDto resetPassword(UserResetPasswordRequestDto userResetPasswordRequestDto) {
-        User user = userRepository.findById(userResetPasswordRequestDto.userId()).orElseThrow(() -> {
-            log.error("User not found with id: {}", userResetPasswordRequestDto.userId());
-            return new DataNotFoundException("User not found with id: " + userResetPasswordRequestDto.userId());
-        });
-
-        String password = generateRandomPassword(DEFAULT_PASSWORD_LENGTH);
-        user.setPassword(passwordEncoder.encode(password));
-        User saved = userRepository.save(user);
-
-        String resetPasswordKey = INIT_PWD_PREFIX + saved.getId();
-        redisTemplate.opsForValue().set(resetPasswordKey, password, INIT_PWD_TTL);
-        emailService.sendResetPassword(saved.getEmail(), password);
         return userMapper.userToUserResponseDto(saved);
     }
 
@@ -133,15 +120,50 @@ public class UserServiceImpl implements UserService {
         log.info("User with id {} deleted", id);
     }
 
-    private String generateRandomPassword(int length) {
-        SecureRandom secureRandom = new SecureRandom();
-        StringBuilder stringBuilder = new StringBuilder(length);
-        int alphabetLength = PASSWORD_ALPHABET.length();
 
-        for (int i = 0; i < length; i++) {
-            int nexted = secureRandom.nextInt(alphabetLength);
-            stringBuilder.append(PASSWORD_ALPHABET.charAt(nexted));
-        }
-        return stringBuilder.toString();
+    @Override
+    @Transactional
+    public UserResponseDto updateProfile(UserProfileUpdateRequestDto userProfileUpdateRequestDto) {
+        Long currentUserId = securityUtil.getCurrentUserId();
+        User user = userRepository.findById(currentUserId).orElseThrow(() -> {
+            log.error("User not found with id: {}", currentUserId);
+            return new DataNotFoundException("User not found with id: " + currentUserId);
+        });
+        user.setFullName(userProfileUpdateRequestDto.fullName());
+        user.setPhoneNumber(userProfileUpdateRequestDto.phoneNumber());
+        user.setEmail(userProfileUpdateRequestDto.email());
+        User saved = userRepository.save(user);
+        return userMapper.userToUserResponseDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public UserResponseDto resetCurrentUserPassword() {
+        Long currentUserId = securityUtil.getCurrentUserId();
+        User user = userRepository.findById(currentUserId).orElseThrow(() -> {
+            log.error("User not found with id: {}", currentUserId);
+            return new DataNotFoundException("User not found with id: " + currentUserId);
+        });
+        String password = PasswordGenerator.generateRandomPassword(DEFAULT_PASSWORD_LENGTH);
+        user.setPassword(passwordEncoder.encode(password));
+        User saved = userRepository.save(user);
+
+        String resetPasswordKey = INIT_PWD_PREFIX + saved.getId();
+        redisTemplate.opsForValue().set(resetPasswordKey, password, INIT_PWD_TTL);
+        emailService.sendResetPassword(saved.getEmail(), password);
+        return userMapper.userToUserResponseDto(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DashboardResponseDto> getCurrentUserDashboards() {
+        Long currentUserId = securityUtil.getCurrentUserId();
+        User user = userRepository.findById(currentUserId).orElseThrow(() -> {
+            log.error("User not found with id: {}", currentUserId);
+            return new DataNotFoundException("User not found with id: " + currentUserId);
+        });
+        Set<Dashboard> dashboards = user.getRoles().stream().flatMap(role -> role.getDashboards().stream())
+                .collect(Collectors.toSet());
+        return dashboardMapper.dashboardsToDashboardResponseDtos(dashboards.stream().toList());
     }
 }

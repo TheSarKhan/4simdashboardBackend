@@ -1,7 +1,6 @@
 package com.backend.dashboarddemo.controller;
 
 import com.backend.dashboarddemo.dto.request.UserRequestDto;
-import com.backend.dashboarddemo.dto.request.UserResetPasswordRequestDto;
 import com.backend.dashboarddemo.dto.response.UserResponseDto;
 import com.backend.dashboarddemo.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,13 +23,6 @@ public class UserController {
     @PostMapping("/create")
     public ResponseEntity<UserResponseDto> create(@RequestBody UserRequestDto dto) {
         return ResponseEntity.ok(userService.create(dto));
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<UserResponseDto> resetPassword(
-            @RequestBody UserResetPasswordRequestDto dto
-    ) {
-        return ResponseEntity.ok(userService.resetPassword(dto));
     }
 
     @GetMapping()

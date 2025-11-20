@@ -1,4 +1,6 @@
 package com.backend.dashboarddemo.dto.request;
 
-public record ResetPasswordRequestDto(String resetToken,String password) {
+import jakarta.validation.constraints.NotBlank;
+
+public record ResetPasswordRequestDto(@NotBlank String email, @NotBlank String code) {
 }

@@ -1,4 +1,6 @@
 package com.backend.dashboarddemo.dto.request;
 
-public record UpdatedDashboardRequestDto(String name, String embedUrl,boolean active) {
+import jakarta.validation.constraints.NotBlank;
+
+public record UpdatedDashboardRequestDto(@NotBlank String name, @NotBlank String embedUrl, boolean active) {
 }

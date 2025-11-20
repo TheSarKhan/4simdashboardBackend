@@ -3,10 +3,8 @@ package com.backend.dashboarddemo.controller;
 import com.backend.dashboarddemo.dto.request.ForgotPasswordRequestDto;
 import com.backend.dashboarddemo.dto.request.LoginRequestDto;
 import com.backend.dashboarddemo.dto.request.ResetPasswordRequestDto;
-import com.backend.dashboarddemo.dto.request.VerifyCodeRequestDto;
 import com.backend.dashboarddemo.dto.response.LoginResponseDto;
 import com.backend.dashboarddemo.dto.response.MessageResponse;
-import com.backend.dashboarddemo.dto.response.VerifyCodeResponseDto;
 import com.backend.dashboarddemo.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -33,13 +31,6 @@ public class AuthController {
             @RequestBody ForgotPasswordRequestDto request
     ) {
         return ResponseEntity.ok(authService.forgotPassword(request));
-    }
-
-    @PostMapping("/verify-code")
-    public ResponseEntity<VerifyCodeResponseDto> verifyCode(
-            @RequestBody VerifyCodeRequestDto request
-    ) {
-        return ResponseEntity.ok(authService.verifyCode(request));
     }
 
     @PostMapping("/reset-password")
